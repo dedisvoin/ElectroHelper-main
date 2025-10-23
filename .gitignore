@@ -7,3 +7,6 @@ venv
 **/*.log
 **/*.sql
 **/*.db
+**/*.sqlite3
+**/*.sqlite
+**/*.sqlite*
