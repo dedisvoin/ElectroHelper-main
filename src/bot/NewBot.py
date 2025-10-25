@@ -1,63 +1,13 @@
 import json
+from ai.ai import request_with_gemini
+from bot.utils import safe_send_text
 from telegram import Update, ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+from config.bot import BOT_TOKEN, SUBSCRIPTIONS, main_keyboard, subscriptions_keyboard, support_keyboard
 
-BOT_TOKEN = "8492419619:AAHwjD2yCOi3ifoTajrOto2ryb1L9tti010"
 
+# Подписки
 # Данные о подписках
-SUBSCRIPTIONS = {
-    'standart': {
-        'name': '🎯 Базовый',
-        'price': 0,
-        'period': 'навсегда',
-        'features': [
-            '✓ Базовые функции',
-            '✓ Ограниченный доступ',
-            '✓ Стандартная поддержка'
-        ],
-        'payment_url': 'https://example.com/pay/standart'
-    },
-    'premium': {
-        'name': '🌟 Студент',
-        'price': 199,
-        'period': 'в месяц',
-        'features': [
-            '✓ Все функции Standart',
-            '✓ Неограниченное количество текстовых запросов',
-            '✓ Расширенные пошаговые решения задач с комментариями',
-            '✓ Доступ к базе данных компонентов и их аналогов'
-        ],
-        'payment_url': 'https://example.com/pay/premium'
-    },
-    'premium_plus': {
-        'name': '🚀 Профессионал',
-        'price': 499,
-        'period': 'в месяц',
-        'features': [
-            '✓ Все функции Premium',
-            '✓ Распознавание изображений и анализ схем',
-            '✓ Доступ к модулю диагностики неисправностей',
-            '✓ Самый высокий приоритет обработки и техническая поддержка'
-        ],
-        'payment_url': 'https://example.com/pay/premium_plus'
-    }
-}
-
-# Клавиатуры
-main_keyboard = [
-    ['💎 Подписки', '🆘 Поддержка'],
-    ['📊 Мой аккаунт', 'ℹ️ О продукте']
-]
-
-subscriptions_keyboard = [
-    ['🎯 Базовый', '🌟 Студент'],
-    ['🚀 Профессионал', '🔙 Назад'],
-]
-
-support_keyboard = [
-    ['💬 Написать в поддержку', '📞 Контакты'],
-    ['🔙 Назад']
-]
 
 main_reply_markup = ReplyKeyboardMarkup(main_keyboard, resize_keyboard=True)
 subscriptions_reply_markup = ReplyKeyboardMarkup(subscriptions_keyboard, resize_keyboard=True)
@@ -128,11 +78,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await show_contacts(update, context)
     elif text == '🔙 Назад':
         await show_main_menu(update, context)  # Используем новую функцию вместо start
-    else:
-        await update.message.reply_text(
-            "Используйте кнопки для навигации 👇",
-            reply_markup=main_reply_markup
-        )
+    else: # Считаем все остальные сообщения за промпты, отправляем в ИИ
+        response = await request_with_gemini(update.message.text)
+        await safe_send_text(update.message.answer, response)
 
 async def show_subscriptions(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Показать доступные подписки"""
@@ -354,7 +302,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode='Markdown'
         )
 
-def main():
+def runBot():
     """Основная функция запуска бота"""
     app = Application.builder().token(BOT_TOKEN).build()
     
@@ -368,6 +316,3 @@ def main():
     
     print("Joule Bot запущен...")
     app.run_polling()
-
-if __name__ == "__main__":
-    main()
