@@ -1,9 +1,16 @@
 import json
-from ai.ai import request_with_gemini
-from bot.utils import safe_send_text
+from src.ai.ai import request_with_gemini
+from .utils import safe_send_text
 from telegram import Update, ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
-from config.bot import BOT_TOKEN, SUBSCRIPTIONS, main_keyboard, subscriptions_keyboard, support_keyboard
+from src.config.bot import (
+    BOT_TOKEN, 
+    SUBSCRIPTIONS, 
+    main_keyboard, 
+    subscriptions_keyboard, 
+    support_keyboard, 
+    PURCHASES_FILE
+)
 
 
 # Подписки
@@ -12,9 +19,6 @@ from config.bot import BOT_TOKEN, SUBSCRIPTIONS, main_keyboard, subscriptions_ke
 main_reply_markup = ReplyKeyboardMarkup(main_keyboard, resize_keyboard=True)
 subscriptions_reply_markup = ReplyKeyboardMarkup(subscriptions_keyboard, resize_keyboard=True)
 support_reply_markup = ReplyKeyboardMarkup(support_keyboard, resize_keyboard=True)
-
-# Файл для хранения покупок (если нужно)
-PURCHASES_FILE = 'purchases.json'
 
 def load_purchases():
     """Загрузка данных о покупках"""
@@ -80,7 +84,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await show_main_menu(update, context)  # Используем новую функцию вместо start
     else: # Считаем все остальные сообщения за промпты, отправляем в ИИ
         response = await request_with_gemini(update.message.text)
-        await safe_send_text(update.message.answer, response)
+        await safe_send_text(update.message.reply_text, response)
 
 async def show_subscriptions(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Показать доступные подписки"""

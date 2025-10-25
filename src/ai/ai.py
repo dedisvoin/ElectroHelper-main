@@ -1,6 +1,6 @@
 import aiohttp
 import json
-from config.network import PROXY, API_KEY
+from src.config.network import PROXY, API_KEY
 
 
 RESTERICTIONS = {
